@@ -1,0 +1,27 @@
+# Python cache
+_pycache_/
+*.py[cod]
+*.pyo
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Streamlit config (opsional, hanya kalau kamu ubah tema lokal)
+.streamlit/config.toml
+
+# SQLite database file
+*.db
+
+# MacOS
+.DS_Store
+
+# Environment file (kalau pakai .env untuk credentials)
+.env
