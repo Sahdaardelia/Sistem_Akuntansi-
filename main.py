@@ -401,7 +401,7 @@ def main():
                 
                 data.append(row)
             
-            # Tambahkan baris total
+            # Tambahkan baris total 
             data.append({
                 "Akun": "TOTAL",
                 "Debit": f"{total_debit:,.2f}",
@@ -427,6 +427,72 @@ def main():
                 st.error(f"❌ Neraca tidak seimbang! Selisih: {abs(total_debit - total_kredit):.2f}")
             
             conn.close()
+
+        # === INFORMASI ===
+        elif selected_menu == "Informasi":
+            st.header("ℹ️ Informasi Aplikasi")
+            conn = get_db_connection()
+            
+            # 1. Logo dan Deskripsi Aplikasi
+            with st.container():
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    try:
+                        st.image("logo_aplikasi.jpg", width=150, caption="Purple Book")
+                    except FileNotFoundError:
+                        st.error("File 'logo_aplikasi.jpg' tidak ditemukan. Pastikan file ada di folder yang sama dengan script ini.")
+                with col2:
+                    st.subheader("Purple Book")
+                    st.write("Aplikasi akuntansi berbasis web untuk UKM")
+                    st.write("""
+                    - Sistem ini dibuat untuk tugas mata kuliah SIM
+                    - Fokus pada transaksi pertanian (petani terong)
+                    - Buku besar dan neraca dibuat otomatis
+                    """)
+            
+            st.divider()
+            
+            # 2. Hasil Survey
+            st.subheader("📊 Data Petani Terong")
+            st.write("**Narasumber**: Bapak Tito Tarwoco")
+            st.write("**Lokasi**: Desa Sarwogadung, Mirit, Kebumen")
+            st.write("**Jenis Terong**: M72 (panen 2x/minggu)")
+            st.write("**Harga**: Rp4.500/kg")
+            
+            st.divider()
+         
+            # 3. Tim Pengembang
+            st.subheader("👩‍💻 Tim Pengembang")
+            
+            # Data tim (pastikan file gambar ada)
+            team_data = [
+                {"nama": "Sahda Ardelia Artanti", "foto": "team1.jpg"},
+                {"nama": "Haura Hana K. M.", "foto": "team2.jpg"},
+                {"nama": "Khansa Raudatul H.", "foto": "team3.jpg"}
+            ]
+            
+            cols = st.columns(3)
+            for i, member in enumerate(team_data):
+                with cols[i]:
+                    try:
+                        st.image(member["foto"], width=150, caption=member["nama"])
+                    except FileNotFoundError:
+                        st.error(f"File '{member['foto']}' tidak ditemukan")
+                    st.write(f"**{member['nama']}**")
+            
+            st.divider()
+            
+            # 4. Panduan Singkat
+            st.subheader("📚 Cara Penggunaan")
+            st.write("""
+            1. **Input Transaksi**:  
+            - Isi tanggal, akun debit/kredit, dan nominal
+            - Pastikan debit = kredit
+            2. **Buku Besar**:  
+            - Otomatis terupdate setelah input transaksi
+            3. **Neraca Saldo**:  
+            - Cek keseimbangan debit-kredit
+            """)
 
 if __name__ == "__main__":
     main()
