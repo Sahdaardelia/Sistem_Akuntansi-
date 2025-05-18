@@ -136,7 +136,7 @@ def main():
             st.rerun()
 
         # Menu navigasi setelah login
-        menu_options = ["Riwayat Transaksi", "Buku Besar", "Neraca Saldo", "Laporan Laba Rugi", "Laporan Perubahan Modal"]
+        menu_options = ["Riwayat Transaksi", "Buku Besar", "Neraca Saldo", "Informasi"]
         selected_menu = st.selectbox("Pilih Menu", menu_options)
 
         # === INPUT TRANSAKSI ===
