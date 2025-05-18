@@ -64,7 +64,7 @@ def hash_password(password):
 init_db()
 
 def main():
-    st.title("Sistem Jurnal Umum")
+    st.title("Sistem Akuntansi")
 
     # Inisialisasi session state
     if 'logged_in' not in st.session_state:
