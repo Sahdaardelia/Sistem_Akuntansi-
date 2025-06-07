@@ -3,6 +3,12 @@ import sqlite3
 import hashlib
 from datetime import datetime
 
+def format_rupiah(angka): #tambah 5 baris
+    try:
+        return f"Rp{angka:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except:
+        return "Rp0,00"
+
 DB_PATH = "accounting_system.db"
 
 # Fungsi untuk membuat koneksi ke database dengan timeout dan row factory
@@ -198,9 +204,9 @@ def main():
             st.rerun()
 
         menu_options = [
-            "Input Transaksi", "Persediaan", "Riwayat Transaksi", "Buku Besar", 
+            "Informasi", "Persediaan", "Input Transaksi", "Riwayat Transaksi", "Buku Besar", 
             "Neraca Saldo", "Laporan Laba Rugi", 
-            "Laporan Perubahan Modal", "Neraca", "Informasi"
+            "Laporan Perubahan Modal", "Neraca",
         ]
         selected_menu = st.sidebar.selectbox("Menu", menu_options)
 
@@ -224,15 +230,15 @@ def main():
                 nominal_kredit = st.number_input("Nominal Kredit", min_value=0.0, format="%.2f")
 
                 submitted = st.form_submit_button("Simpan Transaksi")
-                if submitted:
+                if submitted: #tambah samapai 238
                     if nominal_debit != nominal_kredit:
                         st.error("Nominal debit dan kredit harus sama.")
                     elif not akun_debit.strip() or not akun_kredit.strip():
                         st.error("Nama akun debit dan kredit harus diisi.")
                     else:
                         insert_transaction(st.session_state.user_id, tanggal, bulan, tahun,
-                                           akun_debit.strip(), jenis_debit, nominal_debit,
-                                           akun_kredit.strip(), jenis_kredit, nominal_kredit)
+                                        akun_debit.strip(), jenis_debit, nominal_debit,
+                                        akun_kredit.strip(), jenis_kredit, nominal_kredit)
                         st.success("Transaksi berhasil disimpan.")
 
         # memilih menu riwayat transaksi
@@ -242,14 +248,14 @@ def main():
             if not transactions:
                 st.info("Belum ada transaksi.")
             else:
-                for t in transactions:
+                for t in transactions: # tambah sampai 252
                     st.write(
                         f"{t['tanggal']:02d}-{t['bulan']:02d}-{t['tahun']} | "
-                        f"Debit: {t['akun_debit']} ({t['jenis_debit']}) Rp{t['nominal_debit']:,.2f} | "
-                        f"Kredit: {t['akun_kredit']} ({t['jenis_kredit']}) Rp{t['nominal_kredit']:,.2f}"
+                        f"Debit: {t['akun_debit']} ({t['jenis_debit']}) {format_rupiah(t['nominal_debit'])} | "
+                        f"Kredit: {t['akun_kredit']} ({t['jenis_kredit']}) {format_rupiah(t['nominal_kredit'])}"
                     )
+
         #memilih manajemen persediaan
-#memilih manajemen persediaan
         elif selected_menu == "Persediaan":
             st.header("📦 Manajemen Persediaan")
             
@@ -268,11 +274,11 @@ def main():
                     
                     if len(unique_items) == 1:
                         item = inventory_items[0]
-                        st.markdown(f"""
+                        st.markdown(f""" #tambah sampai 278
                         - *Nama Barang:* {item['nama']}
                         - *Stok Akhir:* {item['jumlah']} unit
-                        - *Harga Satuan:* Rp{item['harga_satuan']:,.2f}
-                        - *Total Nilai:* Rp{item['jumlah'] * item['harga_satuan']:,.2f}
+                        - *Harga Satuan:* {format_rupiah(item['harga_satuan'])}
+                        - *Total Nilai:* {format_rupiah(item['jumlah'] * item['harga_satuan'])}
                         """)
                     else:
                         # Jika ada multiple items, tampilkan semua
@@ -281,8 +287,9 @@ def main():
                             data.append([
                                 item['nama'],
                                 item['jumlah'],
-                                f"Rp{item['harga_satuan']:,.2f}",
-                                f"Rp{item['jumlah'] * item['harga_satuan']:,.2f}"
+                                format_rupiah(item['harga_satuan']), #tambah 2
+                                format_rupiah(item['jumlah'] * item['harga_satuan'])
+
                             ])
                         
                         import pandas as pd
@@ -402,13 +409,13 @@ def main():
                     selected_item_data = next((item for item in inventory_items if item['nama'] == selected_item), None)
                     
                     if selected_item_data:
-                        # Informasi dasar
+                        # Informasi dasar #ada tambah bagian harga satuan akhir dan nilai persediaan
                         st.markdown(f"""
                         ### Informasi Barang
                         - *Nama Barang:* {selected_item_data['nama']}
                         - *Stok Akhir:* {selected_item_data['jumlah']} unit
-                        - *Harga Satuan Terakhir:* Rp{selected_item_data['harga_satuan']:,.2f}
-                        - *Nilai Persediaan:* Rp{selected_item_data['jumlah'] * selected_item_data['harga_satuan']:,.2f}
+                        - *Harga Satuan Terakhir:* {format_rupiah(selected_item_data['harga_satuan'])}
+                        - *Nilai Persediaan:* {format_rupiah(selected_item_data['jumlah'] * selected_item_data['harga_satuan'])}
                         """)
                         
                         # Perhitungan rata-rata sederhana (persediaan awal + persediaan akhir dibagi 2)
@@ -430,11 +437,11 @@ def main():
                         
                         if total_jumlah > 0:
                             rata_rata = total_nilai / total_jumlah
-                            st.write(f"- *Persediaan Awal:* {persediaan_awal['jumlah']} unit @ Rp{persediaan_awal['harga']:,.2f}")
-                            st.write(f"- *Persediaan Akhir:* {selected_item_data['jumlah']} unit @ Rp{selected_item_data['harga_satuan']:,.2f}")
-                            st.write(f"- *Rata-rata:* Rp{rata_rata:,.2f} per unit")
-                            st.write(f"- *Total Unit:* {total_jumlah} unit")
-                            st.write(f"- *Total Nilai:* Rp{total_nilai:,.2f}")
+                            st.write (f"- *Persediaan Awal:* {persediaan_awal['jumlah']} unit @ {format_rupiah(persediaan_awal['harga'])}") #tambah 4 baris
+                            st.write(f"- *Persediaan Akhir:* {selected_item_data['jumlah']} unit @ {format_rupiah(selected_item_data['harga_satuan'])}")
+                            st.write(f"- *Rata-rata:* {format_rupiah(rata_rata)} per unit")
+                            st.write(f"- *Total Nilai:* {format_rupiah(total_nilai)}")
+
                         else:
                             st.warning("Tidak ada data persediaan untuk menghitung rata-rata")
 
@@ -532,9 +539,10 @@ def main():
                     cols = st.columns([1, 2, 2, 2, 2])
                     with cols[0]: st.write(tanggal_str)
                     with cols[1]: st.write(keterangan)
-                    with cols[2]: st.write(f"{jumlah:.2f}" if posisi == "Debit" else "-")
-                    with cols[3]: st.write(f"{jumlah:.2f}" if posisi == "Kredit" else "-")
-                    with cols[4]: st.write(f"{saldo:.2f}")
+                    with cols[2]: st.write(format_rupiah(jumlah) if posisi == "Debit" else "-") #tambah 3 baris
+                    with cols[3]: st.write(format_rupiah(jumlah) if posisi == "Kredit" else "-")
+                    with cols[4]: st.write(format_rupiah(saldo))
+
 
                     # biar ada tabelnya
                     saldo_str = f"{abs(saldo):.2f}"
@@ -597,7 +605,7 @@ def main():
                     if saldo_normal == "Debit":
                         row = {
                             "Akun": f"{akun_name} ({jenis})",
-                            "Debit": f"{saldo:,.2f}",
+                            "Debit": format_rupiah(saldo), #tambah
                             "Kredit": "0.00"
                         }
                         total_debit += saldo
@@ -605,7 +613,7 @@ def main():
                         row = {
                             "Akun": f"{akun_name} ({jenis})",
                             "Debit": "0.00",
-                            "Kredit": f"{saldo:,.2f}"
+                            "Kredit": format_rupiah(saldo), #tambah
                         }
                         total_kredit += saldo
                 else:
@@ -613,13 +621,13 @@ def main():
                         row = {
                             "Akun": f"{akun_name} ({jenis})",
                             "Debit": "0.00",
-                            "Kredit": f"{-saldo:,.2f}"
+                            "Kredit": format_rupiah(saldo), #tambah
                         }
                         total_kredit += -saldo
                     else:
                         row = {
                             "Akun": f"{akun_name} ({jenis})",
-                            "Debit": f"{-saldo:,.2f}",
+                            "Debit": format_rupiah(saldo), #tambah
                             "Kredit": "0.00"
                         }
                         total_debit += -saldo
@@ -629,22 +637,24 @@ def main():
             # Tambahkan baris total 
             data.append({
                 "Akun": "TOTAL",
-                "Debit": f"{total_debit:,.2f}",
-                "Kredit": f"{total_kredit:,.2f}"
+                "Debit": format_rupiah(total_debit), #tambah 2 baris
+                "Kredit": format_rupiah(total_kredit)
+
             })
             
-            # Tampilkan tabel
-            st.dataframe(
+            # Tampilkan tabel #tambah full revisi sampai sebelum validasi keseimbangan
+            st.dataframe(  
                 data,
                 column_config={
                     "Akun": st.column_config.TextColumn("Akun", width="medium"),
-                    "Debit": st.column_config.NumberColumn("Debit", format="%.2f"),
-                    "Kredit": st.column_config.NumberColumn("Kredit", format="%.2f")
+                    "Debit": st.column_config.TextColumn("Debit"),
+                    "Kredit": st.column_config.TextColumn("Kredit")
                 },
                 hide_index=True,
                 width=700
             )
-            
+
+                        
             # Validasi keseimbangan
             if abs(total_debit - total_kredit) < 0.01:
                 st.success("✅ Neraca seimbang (Total Debit = Total Kredit)")
@@ -695,11 +705,11 @@ def main():
             total_pendapatan = 0
             for akun, nominal in pendapatan_dict.items():
                 if nominal != 0:
-                    st.write(f"- {akun}: Rp{nominal:,.2f}" if nominal > 0 else f"- {akun}: (Rp{abs(nominal):,.2f})")
-                    total_pendapatan += nominal
+                     st.write(f"- {akun}: {format_rupiah(nominal)}" if nominal > 0 else f"- {akun}: ({format_rupiah(abs(nominal))})") #tambah 1 ini tok
+                     total_pendapatan += nominal
             
-            st.write(f"Total Pendapatan: Rp{total_pendapatan:,.2f}" if total_pendapatan >= 0 
-                    else f"Total Pendapatan: (Rp{abs(total_pendapatan):,.2f})")
+            st.write(f"Total Pendapatan: {format_rupiah(total_pendapatan)}" if total_pendapatan >= 0 #tambah 2 baris
+                else f"Total Pendapatan: ({format_rupiah(abs(total_pendapatan))})")
             
             # 2. Hitung Total Beban (semua akun jenis Beban)
             st.subheader("\nBeban")
@@ -737,20 +747,21 @@ def main():
             total_beban = 0
             for akun, nominal in beban_dict.items():
                 if nominal != 0:
-                    st.write(f"- {akun}: Rp{nominal:,.2f}" if nominal > 0 else f"- {akun}: (Rp{abs(nominal):,.2f})")
+                    st.write(f"- {akun}: {format_rupiah(nominal)}" if nominal > 0 else f"- {akun}: ({format_rupiah(abs(nominal))})") # tambah 1 ini tok
                     total_beban += nominal
             
-            st.write(f"Total Beban: Rp{total_beban:,.2f}" if total_beban >= 0 
-                    else f"Total Beban: (Rp{abs(total_beban):,.2f})")
+            st.write(f"Total Beban: {format_rupiah(total_beban)}" if total_beban >= 0 #tambah2 baris
+                else f"Total Beban: ({format_rupiah(abs(total_beban))})")
+
             
             # 3. Hitung Laba/Rugi
             st.divider()
             laba_rugi = total_pendapatan - total_beban
             
             if laba_rugi >= 0:
-                st.success(f"Laba Bersih: Rp{laba_rugi:,.2f}")
+                st.success(f"Laba Bersih: {format_rupiah(laba_rugi)}") #tambah 1 tok
             else:
-                st.error(f"Rugi Bersih: (Rp{abs(laba_rugi):,.2f})")
+                st.error(f"Rugi Bersih: ({format_rupiah(abs(laba_rugi))})") #tambah 1 tok
             
             # 4. Tampilkan Logika Perhitungan
             with st.expander("🔍 Detail Perhitungan"):
@@ -796,8 +807,8 @@ def main():
             
             modal_awal = modal_kredit - modal_debit
             
-            st.write(f"Total Modal Awal: Rp{modal_awal:,.2f}" if modal_awal >= 0 
-                    else f"Total Modal Awal: (Rp{abs(modal_awal):,.2f})")
+            st.write(f"Total Modal Awal: {format_rupiah(modal_awal)}" if modal_awal >= 0 #tambah 2 baris
+                else f"Total Modal Awal: ({format_rupiah(abs(modal_awal))})")
             
             # 2. Hitung Laba/Rugi Berjalan (dari Laporan Laba Rugi)
             st.subheader("\nLaba/Rugi Berjalan")
@@ -873,160 +884,55 @@ def main():
 
         # === NERACA ===
         elif selected_menu == "Neraca":
-            st.header("📋 Neraca")
-            st.write(f"Per {datetime.now().strftime('%d/%m/%Y')}")
-            
+            st.header("📄 Neraca (Posisi Keuangan)")
+
             conn = get_db_connection()
-            
-            # ===== ASET =====
-            st.subheader("Aktiva (Aset)")
-            
-            # 1. Aset Lancar
-            st.markdown("Aset Lancar")
-            
-            # Kas
-            kas_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%kas%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            kas_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%kas%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_kas = kas_debit - kas_kredit
-            st.write(f"- Kas: Rp{saldo_kas:,.2f}")
-            
-            # Piutang Usaha
-            piutang_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%piutang%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            piutang_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%piutang%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_piutang = piutang_debit - piutang_kredit
-            st.write(f"- Piutang Usaha: Rp{saldo_piutang:,.2f}")
-            
-            # Persediaan
-            persediaan_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%persediaan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            persediaan_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%persediaan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_persediaan = persediaan_debit - persediaan_kredit
-            st.write(f"- Persediaan: Rp{saldo_persediaan:,.2f}")
-            
-            # Aset Lancar Lainnya
-            aset_lancar_lain = conn.execute(
+
+            # Ambil semua akun dan jenis dari transaksi user
+            akun_data = conn.execute(
                 '''
-                SELECT 
-                    COALESCE(SUM(CASE WHEN jenis_debit = 'Aktiva' AND (akun_debit LIKE "%aset lancar%" OR akun_debit LIKE "%biaya dibayar di muka%") THEN nominal_debit ELSE 0 END), 0) -
-                    COALESCE(SUM(CASE WHEN jenis_kredit = 'Aktiva' AND (akun_kredit LIKE "%aset lancar%" OR akun_kredit LIKE "%biaya dibayar di muka%") THEN nominal_kredit ELSE 0 END), 0) as saldo
-                FROM transactions
-                WHERE user_id = ?
-                AND (akun_debit NOT LIKE "%kas%" AND akun_debit NOT LIKE "%piutang%" AND akun_debit NOT LIKE "%persediaan%")
-                AND (akun_kredit NOT LIKE "%kas%" AND akun_kredit NOT LIKE "%piutang%" AND akun_kredit NOT LIKE "%persediaan%")
+                SELECT akun_debit AS akun, jenis_debit AS jenis FROM transactions WHERE user_id = ?
+                UNION
+                SELECT akun_kredit AS akun, jenis_kredit AS jenis FROM transactions WHERE user_id = ?
                 ''',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            if aset_lancar_lain != 0:
-                st.write(f"- Aset Lancar Lainnya: Rp{aset_lancar_lain:,.2f}")
-            
-            total_aset_lancar = saldo_kas + saldo_piutang + saldo_persediaan + (aset_lancar_lain if aset_lancar_lain else 0)
-            st.write(f"Total Aset Lancar: Rp{total_aset_lancar:,.2f}")
-            
-            # 2. Aset Tetap
-            st.markdown("\n*Aset Tetap*")
-            
-            # Peralatan
-            peralatan_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%peralatan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            peralatan_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%peralatan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_peralatan = peralatan_debit - peralatan_kredit
-            st.write(f"- Peralatan: Rp{saldo_peralatan:,.2f}")
-            
-            # Akumulasi Penyusutan
-            penyusutan_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%penyusutan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            penyusutan_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%penyusutan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_penyusutan = penyusutan_kredit - penyusutan_debit
-            
-            st.write(f"- Akumulasi Penyusutan: (Rp{saldo_penyusutan:,.2f})")
-            
-            # Kendaraan
-            kendaraan_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%kendaraan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            kendaraan_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%kendaraan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_kendaraan = kendaraan_debit - kendaraan_kredit
-            st.write(f"- Kendaraan: Rp{saldo_kendaraan:,.2f}")
-            
-            # Bangunan
-            bangunan_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Aktiva" AND akun_debit LIKE "%bangunan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            bangunan_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Aktiva" AND akun_kredit LIKE "%bangunan%"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            saldo_bangunan = bangunan_debit - bangunan_kredit
-            st.write(f"- Bangunan: Rp{saldo_bangunan:,.2f}")
-            
-            total_aset_tetap = saldo_peralatan - saldo_penyusutan + saldo_kendaraan + saldo_bangunan
-            st.write(f"Total Aset Tetap: Rp{total_aset_tetap:,.2f}")
-            
-            # Total Aset
-            total_aset = total_aset_lancar + total_aset_tetap
-            st.write(f"TOTAL AKTIVA: Rp{total_aset:,.2f}")
-            
-            # ===== KEWAJIBAN =====
-            # Total Utang (mengambil semua transaksi dengan jenis 'Utang')
-            utang_kredit = conn.execute(
-                    'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Utang"',
-                    (st.session_state.user_id,)
+                (st.session_state.user_id, st.session_state.user_id)
+            ).fetchall()
+
+            if not akun_data:
+                st.warning("Belum ada transaksi yang dicatat.")
+                conn.close()
+                return
+
+            aktiva = {}
+            utang = {}
+
+            # Hitung saldo setiap akun dan klasifikasikan
+            for akun in akun_data:
+                nama_akun = akun['akun']
+                jenis = akun['jenis']
+
+                debit = conn.execute(
+                    'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND akun_debit = ?',
+                    (st.session_state.user_id, nama_akun)
                 ).fetchone()[0]
 
-            utang_debit = conn.execute(
-                    'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Utang"',
-                    (st.session_state.user_id,)
+                kredit = conn.execute(
+                    'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND akun_kredit = ?',
+                    (st.session_state.user_id, nama_akun)
                 ).fetchone()[0]
 
-            saldo_utang = utang_kredit - utang_debit
+                # Tentukan saldo akhir
+                saldo = debit - kredit if jenis in ["Aktiva", "Beban"] else kredit - debit
 
-            #===== UTANG ====
-            st.subheader ("Utang")
-            st.write(f"- Total Utang: Rp{saldo_utang:,.2f}")
-            
-            # ===== EKUITAS =====
-            st.subheader("\nEkuitas")
-            
-            # Modal Awal
+                # Masukkan ke kategori masing-masing jika saldo tidak nol
+                if abs(saldo) > 0.01:
+                    if jenis == "Aktiva":
+                        aktiva[nama_akun] = saldo
+                    elif jenis == "Utang":
+                        utang[nama_akun] = saldo
+
+            # Ambil Modal Akhir dari laporan perubahan modal
+            # Hitung ulang sama seperti sebelumnya (atau bisa simpan ke session jika sebelumnya sudah dihitung)
             modal_kredit = conn.execute(
                 '''
                 SELECT COALESCE(SUM(nominal_kredit), 0) 
@@ -1037,7 +943,7 @@ def main():
                 ''',
                 (st.session_state.user_id,)
             ).fetchone()[0]
-            
+
             modal_debit = conn.execute(
                 '''
                 SELECT COALESCE(SUM(nominal_debit), 0) 
@@ -1048,80 +954,76 @@ def main():
                 ''',
                 (st.session_state.user_id,)
             ).fetchone()[0]
+
             modal_awal = modal_kredit - modal_debit
-            
-            st.write(f"- Modal Awal: Rp{modal_awal:,.2f}")
-            
-            # Laba Ditahan (Laba/Rugi Berjalan)
-            pendapatan_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Pendapatan"',
-                (st.session_state.user_id,)
+
+            # Laba/rugi
+            total_pendapatan = conn.execute(
+                '''
+                SELECT COALESCE(SUM(nominal_kredit), 0) - COALESCE((SELECT SUM(nominal_debit) FROM transactions 
+                WHERE user_id = ? AND jenis_debit = 'Pendapatan'), 0) 
+                FROM transactions 
+                WHERE user_id = ? AND jenis_kredit = 'Pendapatan'
+                ''',
+                (st.session_state.user_id, st.session_state.user_id)
             ).fetchone()[0]
-            
-            pendapatan_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Pendapatan"',
-                (st.session_state.user_id,)
+
+            total_beban = conn.execute(
+                '''
+                SELECT COALESCE(SUM(nominal_debit), 0) - COALESCE((SELECT SUM(nominal_kredit) FROM transactions 
+                WHERE user_id = ? AND jenis_kredit = 'Beban'), 0) 
+                FROM transactions 
+                WHERE user_id = ? AND jenis_debit = 'Beban'
+                ''',
+                (st.session_state.user_id, st.session_state.user_id)
             ).fetchone()[0]
-            total_pendapatan = pendapatan_kredit - pendapatan_debit
-            
-            beban_debit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_debit), 0) FROM transactions WHERE user_id = ? AND jenis_debit = "Beban"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            beban_kredit = conn.execute(
-                'SELECT COALESCE(SUM(nominal_kredit), 0) FROM transactions WHERE user_id = ? AND jenis_kredit = "Beban"',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            total_beban = beban_debit - beban_kredit
-            
+
             laba_rugi = total_pendapatan - total_beban
-            
-            st.write(f"- Laba/Rugi Berjalan: Rp{laba_rugi:,.2f}" if laba_rugi >= 0 
-                    else f"- Laba/Rugi Berjalan: (Rp{abs(laba_rugi):,.2f})")
-            
-            # Prive
+
             prive = conn.execute(
                 '''
                 SELECT COALESCE(SUM(nominal_debit), 0) 
                 FROM transactions 
-                WHERE user_id = ? AND jenis_debit = "Modal" 
-                AND (akun_debit LIKE "%prive%" OR akun_debit LIKE "%pengambilan pribadi%")
+                WHERE user_id = ? AND jenis_debit = 'Modal' 
+                AND (akun_debit LIKE '%prive%' OR akun_debit LIKE '%pengambilan pribadi%')
                 ''',
                 (st.session_state.user_id,)
             ).fetchone()[0]
-            
-            if prive != 0:
-                st.write(f"- Prive: (Rp{prive:,.2f})")
-            
-            # Tambahan Modal
-            tambahan_modal = conn.execute(
-                '''
-                SELECT COALESCE(SUM(nominal_kredit), 0) 
-                FROM transactions 
-                WHERE user_id = ? AND jenis_kredit = "Modal" 
-                AND (akun_kredit LIKE "%tambahan modal%" OR akun_kredit LIKE "%investasi%")
-                ''',
-                (st.session_state.user_id,)
-            ).fetchone()[0]
-            
-            if tambahan_modal != 0:
-                st.write(f"- Tambahan Modal: Rp{tambahan_modal:,.2f}")
-            
-            # Total Ekuitas
-            total_ekuitas = modal_awal + laba_rugi - (prive if prive else 0) + (tambahan_modal if tambahan_modal else 0)
-            st.write(f"TOTAL EKUITAS: Rp{total_ekuitas:,.2f}")
-            
-             # ===== TOTAL KEWAJIBAN DAN EKUITAS =====
-            st.write(f"TOTAL KEWAJIBAN DAN EKUITAS: Rp{saldo_utang + total_ekuitas:,.2f}")
 
+            modal_akhir = modal_awal + laba_rugi - prive
+
+            # Tampilkan Neraca
+            st.subheader("Aktiva")
+            total_aktiva = 0
+            for akun, saldo in aktiva.items():
+                st.write(f"- {akun}: {format_rupiah(saldo)}")
+                total_aktiva += saldo
+            st.write(f"**Total Aktiva: {format_rupiah(total_aktiva)}**")
+
+            st.write("---")
+
+            st.subheader("Utang")
+            total_utang = 0
+            for akun, saldo in utang.items():
+                st.write(f"- {akun}: {format_rupiah(saldo)}")
+                total_utang += saldo
+            st.write(f"**Total Utang: {format_rupiah(total_utang)}**")
+
+            st.subheader("Modal")
+            st.write(f"- Modal Akhir: {format_rupiah(modal_akhir)}")
+
+            total_pasiva = total_utang + modal_akhir
+            st.write(f"**Total Utang + Modal: {format_rupiah(total_pasiva)}**")
+
+            st.divider()
             
             # Validasi keseimbangan neraca
-            st.divider()
-            if abs(total_aset - (saldo_utang + total_ekuitas)) < 0.01:
-                st.success("✅ Neraca seimbang (Total Aset = Total Kewajiban + Ekuitas)")
+            if abs(total_aktiva - total_pasiva) < 0.01:
+                st.success("✅ Neraca Seimbang (Aktiva = Kewajiban + Modal)")
             else:
-                st.error(f"❌ Neraca tidak seimbang! Selisih: Rp{abs(total_aset - (saldo_utang + total_ekuitas)):,.2f}")
+                st.error(f"❌ Neraca Tidak Seimbang! Selisih: {format_rupiah(abs(total_aktiva - total_pasiva))}")
+
+            conn.close()
 
         # === INFORMASI ===
         elif selected_menu == "Informasi":
@@ -1186,14 +1088,16 @@ def main():
             # 4. Panduan Singkat
             st.subheader("📚 Cara Penggunaan")
             st.write("""
-            1. Input Transaksi:  
+            1. Menu "Persediaan" dibuat untuk memasukkan total dan harga persediaan setiap transaksi berlangsung (dibuat manual)
+            2. Input Transaksi
             - Isi tanggal, akun debit/kredit, dan nominal
             - Pastikan debit = kredit
-            2. Buku Besar:
+            3. Buku Besar
             - Otomatis terupdate setelah input transaksi
-            3. Neraca Saldo:  
+            4. Neraca Saldo
             - Cek keseimbangan debit-kredit
-            """)
+            5. Laporan Keuangan yang meliputi laporan rugi laba, perubahan modal dan neraca dibuat otomatis
+            """) 
             
             # Footer
             st.caption("© 2025 Purple Book - Versi 1.0")
