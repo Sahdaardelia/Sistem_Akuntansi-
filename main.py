@@ -204,9 +204,9 @@ def main():
             st.rerun()
 
         menu_options = [
-            "Input Transaksi", "Persediaan", "Riwayat Transaksi", "Buku Besar", 
+            "Informasi", "Persediaan", "Input Transaksi", "Riwayat Transaksi", "Buku Besar", 
             "Neraca Saldo", "Laporan Laba Rugi", 
-            "Laporan Perubahan Modal", "Neraca", "Informasi"
+            "Laporan Perubahan Modal", "Neraca"
         ]
         selected_menu = st.sidebar.selectbox("Menu", menu_options)
 
