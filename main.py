@@ -1114,13 +1114,15 @@ def main():
             # 4. Panduan Singkat
             st.subheader("📚 Cara Penggunaan")
             st.write("""
-            1. Input Transaksi:  
+            1. Menu "Persediaan" dibuat untuk memasukan total dan harga persediaan setiap transaksi berlangsung (dibuat manual)
+            2. Input Transaksi  
             - Isi tanggal, akun debit/kredit, dan nominal
             - Pastikan debit = kredit
-            2. Buku Besar:
+            3. Buku Besar
             - Otomatis terupdate setelah input transaksi
-            3. Neraca Saldo:  
+            4. Neraca Saldo
             - Cek keseimbangan debit-kredit
+            5. Laporan keuangan yang meliputi laporan rugi laba, laporan perubahan modal dan neraca dibuat otomatis
             """)
             
             # Footer
